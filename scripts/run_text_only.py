@@ -170,12 +170,13 @@ def resolve_paths(domain: str) -> tuple[Path, Path, Path]:
     return dataset, scenario_db_dir, agent_config
 
 
-def build_user_sim_prompt(record: EvaluationRecord) -> str:
+def build_user_sim_prompt(record: EvaluationRecord, user_simulator_context: str) -> str:
     """Build the user-simulator system prompt from the record's goal and persona."""
     pm = PromptManager()
     goal = record.user_goal
     return pm.get_prompt(
         "user_simulator.system_prompt",
+        user_simulator_context=user_simulator_context,
         high_level_user_goal=goal["high_level_user_goal"],
         must_have_criteria=goal["decision_tree"]["must_have_criteria"],
         escalation_behavior=goal["decision_tree"]["escalation_behavior"],
@@ -499,7 +500,7 @@ async def run_record(
         output_dir=record_output_dir,
     )
 
-    user_prompt = build_user_sim_prompt(record)
+    user_prompt = build_user_sim_prompt(record, user_simulator_context=agent.user_simulator_context)
 
     # ---- Conversation loop ----
     logger.info(f"Text-only test: record {record.id} | model={llm_model} | max_turns={max_turns}")
